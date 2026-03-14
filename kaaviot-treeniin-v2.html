@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaaviot treeniin</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; min-height: 100vh; padding: 1.5rem 0 4rem; }
+.container { max-width: 480px; margin: 0 auto; padding: 1.25rem 1.5rem; background: #ffffff; min-height: 100vh; }
+h1 { font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 1.75rem; letter-spacing: -0.02em; }
+.section-label { font-size: 11px; font-weight: 600; color: #999; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.07em; }
+.name-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.name-input-row input { flex: 1; height: 40px; padding: 0 12px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; color: #1a1a1a; font-size: 15px; font-family: inherit; }
+.name-input-row input:focus { outline: none; border-color: #185FA5; box-shadow: 0 0 0 3px rgba(24,95,165,0.1); }
+.btn-icon { width: 40px; height: 40px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; color: #555; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.btn-icon:hover { background: #f5f4f0; }
+.names-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; min-height: 4px; }
+.name-tag { display: flex; align-items: center; gap: 6px; background: #E6F1FB; color: #0C447C; border-radius: 20px; padding: 5px 10px 5px 14px; font-size: 14px; font-weight: 500; }
+.name-tag button { background: none; border: none; color: #185FA5; cursor: pointer; font-size: 17px; line-height: 1; padding: 0; }
+.settings-row { display: flex; gap: 12px; margin-bottom: 1.5rem; }
+.field { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 13px; color: #666; }
+.field input { height: 40px; padding: 0 12px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; color: #1a1a1a; font-size: 15px; font-family: inherit; }
+.field input:focus { outline: none; border-color: #185FA5; box-shadow: 0 0 0 3px rgba(24,95,165,0.1); }
+.rounds-selector { margin-bottom: 1.5rem; }
+.rounds-label { font-size: 13px; color: #666; margin-bottom: 8px; }
+.rounds-track { display: flex; gap: 6px; flex-wrap: wrap; }
+.rnd { width: 38px; height: 38px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; color: #666; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; }
+.rnd:hover { background: #f5f4f0; }
+.rnd.on { background: #185FA5; color: #fff; border-color: #185FA5; }
+.btn-generate { width: 100%; height: 46px; border: none; border-radius: 10px; background: #185FA5; color: white; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 1.5rem; font-family: inherit; letter-spacing: -0.01em; }
+.btn-generate:hover { background: #0C447C; }
+.error { font-size: 14px; color: #A32D2D; background: #FCEBEB; border-radius: 8px; padding: 10px 14px; margin-bottom: 1rem; display: none; }
+.results { display: none; }
+.results.visible { display: block; }
+.stats-row { display: flex; gap: 10px; margin-bottom: 1.5rem; }
+.stat-card { flex: 1; background: #f5f4f0; border-radius: 10px; padding: 12px 10px; text-align: center; }
+.stat-val { font-size: 22px; font-weight: 600; color: #1a1a1a; letter-spacing: -0.02em; }
+.stat-lbl { font-size: 12px; color: #999; margin-top: 2px; }
+.round-block { margin-bottom: 1.25rem; }
+.round-title { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+.match { background: #FAEEDA; border: 1px solid #FAC775; border-radius: 12px; padding: 10px 14px; margin-bottom: 6px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
+.match-title { font-size: 11px; font-weight: 600; color: #854F0B; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; text-align: center; }
+.match-sub { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.match-player { flex: 1; font-size: 15px; font-weight: 500; color: #633806; text-align: center; }
+.match-vs { font-size: 12px; color: #BA7517; font-weight: 600; flex-shrink: 0; }
+.match-note { font-size: 12px; color: #854F0B; text-align: center; margin-top: 4px; }
+.divider { height: 1px; background: #f0f0f0; margin: 1.5rem 0; }
+.summary-title { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 10px; letter-spacing: -0.01em; }
+.summary-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+.summary-row:last-child { border-bottom: none; }
+.summary-name { flex: 1; font-size: 15px; color: #1a1a1a; }
+.summary-bar-wrap { flex: 2; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+.summary-bar { height: 100%; background: #185FA5; border-radius: 4px; }
+.summary-mins { font-size: 14px; font-weight: 600; color: #1a1a1a; min-width: 48px; text-align: right; }
+.pair-row { display: flex; align-items: center; gap: 12px; padding: 7px 0; border-bottom: 1px solid #f5f5f5; }
+.pair-row:last-child { border-bottom: none; }
+.pair-names { flex: 1; font-size: 14px; color: #1a1a1a; }
+.pair-names span { color: #bbb; font-size: 12px; margin: 0 4px; }
+.pair-bar-wrap { flex: 2; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+.pair-bar { height: 100%; background: #BA7517; border-radius: 3px; }
+.pair-mins { font-size: 13px; font-weight: 600; color: #1a1a1a; min-width: 48px; text-align: right; }
+.bottom-btns { display: flex; gap: 10px; margin-top: 1rem; }
+.btn-regen { flex: 1; height: 46px; border: none; border-radius: 10px; background: #185FA5; color: white; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.btn-regen:hover { background: #0C447C; }
+.btn-reset { flex: 1; height: 46px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; color: #666; font-size: 15px; cursor: pointer; font-family: inherit; }
+.btn-reset:hover { background: #f5f4f0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Kaaviot treeniin</h1>
+  <p class="section-label">Ottelijat</p>
+  <div class="name-input-row">
+    <input type="text" id="nameInput" placeholder="Lisää nimi..." maxlength="30" />
+    <button class="btn-icon" onclick="addName()">+</button>
+  </div>
+  <div class="names-list" id="namesList"></div>
+  <div class="settings-row">
+    <div class="field">
+      <label>Erän kesto (min)</label>
+      <input type="number" id="matchLen" value="6" min="1" max="60" />
+    </div>
+  </div>
+  <div class="rounds-selector">
+    <p class="rounds-label">Kierrosten määrä</p>
+    <div class="rounds-track">
+      <button class="rnd" onclick="setR(1)">1</button>
+      <button class="rnd" onclick="setR(2)">2</button>
+      <button class="rnd" onclick="setR(3)">3</button>
+      <button class="rnd" onclick="setR(4)">4</button>
+      <button class="rnd" onclick="setR(5)">5</button>
+      <button class="rnd" onclick="setR(6)">6</button>
+      <button class="rnd" onclick="setR(7)">7</button>
+      <button class="rnd" onclick="setR(8)">8</button>
+      <button class="rnd on" onclick="setR(9)">9</button>
+      <button class="rnd" onclick="setR(10)">10</button>
+      <button class="rnd" onclick="setR(11)">11</button>
+      <button class="rnd" onclick="setR(12)">12</button>
+      <button class="rnd" onclick="setR(13)">13</button>
+      <button class="rnd" onclick="setR(14)">14</button>
+      <button class="rnd" onclick="setR(15)">15</button>
+      <button class="rnd" onclick="setR(16)">16</button>
+      <button class="rnd" onclick="setR(17)">17</button>
+      <button class="rnd" onclick="setR(18)">18</button>
+      <button class="rnd" onclick="setR(19)">19</button>
+      <button class="rnd" onclick="setR(20)">20</button>
+    </div>
+  </div>
+  <div class="error" id="errorMsg"></div>
+  <button class="btn-generate" onclick="generate()">Luo kaaviot</button>
+  <div class="results" id="results"></div>
+</div>
+
+<script>
+var names=[], selectedRounds=9;
+document.getElementById('nameInput').addEventListener('keydown',function(e){if(e.key==='Enter')addName();});
+function setR(n){selectedRounds=n;var b=document.querySelectorAll('.rnd');for(var i=0;i<b.length;i++)b[i].className=(i+1===n)?'rnd on':'rnd';}
+function addName(){var v=document.getElementById('nameInput').value.trim();if(!v||names.indexOf(v)!==-1){document.getElementById('nameInput').value='';return;}names.push(v);document.getElementById('nameInput').value='';renderNames();}
+function removeName(i){names.splice(i,1);renderNames();}
+function renderNames(){document.getElementById('namesList').innerHTML=names.map(function(n,i){return '<div class="name-tag">'+n+'<button onclick="removeName('+i+')">×</button></div>';}).join('');}
+function pairKey(a,b){return [a,b].sort().join('|');}
+function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+function allMatchings(arr){
+  if(arr.length===0)return[[]];
+  if(arr.length===2)return[[[arr[0],arr[1]]]];
+  var result=[],first=arr[0];
+  for(var i=1;i<arr.length;i++){var p=arr[i],rem=arr.filter(function(x){return x!==first&&x!==p;});allMatchings(rem).forEach(function(m){result.push([[first,p]].concat(m));});}
+  return result;
+}
+
+function allValidRounds(players){
+  var n=players.length,rounds=[];
+  for(var i=0;i<n;i++)for(var j=i+1;j<n;j++)for(var k=j+1;k<n;k++){
+    var triple=[players[i],players[j],players[k]],rest=players.filter(function(p){return triple.indexOf(p)===-1;});
+    allMatchings(rest).forEach(function(pairs){rounds.push({pairs:pairs,triple:triple});});
+  }
+  return rounds;
+}
+
+function applyRound(c,round,matchLen,subMin){
+  var r={};Object.keys(c).forEach(function(k){r[k]=c[k];});
+  round.pairs.forEach(function(p){r[pairKey(p[0],p[1])]+=matchLen;});
+  var t=round.triple;r[pairKey(t[0],t[1])]+=subMin;r[pairKey(t[1],t[2])]+=subMin;r[pairKey(t[0],t[2])]+=subMin;
+  return r;
+}
+
+function scoreContact(c){
+  var vals=Object.values(c),mx=Math.max.apply(null,vals),mean=vals.reduce(function(a,b){return a+b;})/vals.length;
+  return mx*1000+vals.reduce(function(s,v){return s+(v-mean)*(v-mean);},0);
+}
+
+function rrBase(players){
+  var n=players.length,rounds=[],fixed=players[0],rot=players.slice(1);
+  for(var r=0;r<n-1;r++){
+    var circle=[fixed].concat(rot),round=[];
+    for(var i=0;i<n/2;i++)round.push([circle[i],circle[n-1-i]]);
+    rounds.push(round);
+    rot=[rot[rot.length-1]].concat(rot.slice(0,rot.length-1));
+  }
+  return rounds;
+}
+
+function buildSchedule(nameList,totalRounds,matchLen){
+  var n=nameList.length;if(n<2)return[];
+  var subMin=matchLen/3,pl=shuffle(nameList);
+  if(n%2===0){
+    var base=rrBase(pl),offset=Math.floor(Math.random()*base.length),schedule=[];
+    for(var i=0;i<totalRounds;i++){var r=base[(i+offset)%base.length];schedule.push(r.map(function(pair){return {type:'pair',players:shuffle(pair)};}));}
+    return schedule;
+  }
+  var validRounds=shuffle(allValidRounds(pl)),contact={};
+  for(var i=0;i<n;i++)for(var j=i+1;j<n;j++)contact[pairKey(pl[i],pl[j])]=0;
+  var maxC=pl.length<=9?validRounds.length:Math.min(validRounds.length,60),schedule=[];
+  for(var r=0;r<totalRounds;r++){
+    var best=null,bs=Infinity;
+    validRounds.slice(0,maxC).forEach(function(round){var c2=applyRound(contact,round,matchLen,subMin),s=scoreContact(c2);if(s<bs){bs=s;best=round;}});
+    contact=applyRound(contact,best,matchLen,subMin);
+    validRounds=shuffle(validRounds);
+    schedule.push({type:'odd',pairs:best.pairs.map(function(p){return {type:'pair',players:shuffle(p)};}),triple:{type:'triple',players:shuffle(best.triple)}});
+  }
+  return schedule;
+}
+
+function generate(){
+  var err=document.getElementById('errorMsg');err.style.display='none';
+  if(names.length<2){err.textContent='Lisää vähintään 2 ottelijaa.';err.style.display='block';return;}
+  var matchLen=parseInt(document.getElementById('matchLen').value)||6,subMin=Math.round(matchLen/3);
+  var rawSchedule=buildSchedule(names,selectedRounds,matchLen);
+  var schedule=rawSchedule.map(function(r){return Array.isArray(r)?r:r.pairs.concat([r.triple]);});
+  var mins={};names.forEach(function(p){mins[p]=0;});
+  var pmm={};
+  function addPM(a,b,t){var k=pairKey(a,b);pmm[k]=(pmm[k]||0)+t;}
+  schedule.forEach(function(round){round.forEach(function(slot){
+    if(slot.type==='pair'){mins[slot.players[0]]+=matchLen;mins[slot.players[1]]+=matchLen;addPM(slot.players[0],slot.players[1],matchLen);}
+    else{var a=slot.players[0],b=slot.players[1],c=slot.players[2];mins[a]+=subMin*2;mins[b]+=subMin*2;mins[c]+=subMin*2;addPM(a,b,subMin);addPM(b,c,subMin);addPM(a,c,subMin);}
+  });});
+  var maxMins=Math.max.apply(null,names.map(function(p){return mins[p];}));
+  var pairKeys=Object.keys(pmm).sort(function(a,b){return pmm[b]-pmm[a];});
+  var maxPM=pairKeys.length?pmm[pairKeys[0]]:1;
+  var html='<div class="stats-row"><div class="stat-card"><div class="stat-val">'+selectedRounds+'</div><div class="stat-lbl">kierrosta</div></div><div class="stat-card"><div class="stat-val">'+matchLen+' min</div><div class="stat-lbl">erän kesto</div></div><div class="stat-card"><div class="stat-val">'+names.length+'</div><div class="stat-lbl">ottelijaa</div></div></div>';
+  schedule.forEach(function(round,ri){
+    html+='<div class="round-block"><div class="round-title">Kierros '+(ri+1)+'</div>';
+    round.forEach(function(slot){
+      if(slot.type==='pair'){html+='<div class="match"><div class="match-title">1 vs 1 &nbsp;·&nbsp; '+matchLen+' min</div><div class="match-sub"><span class="match-player">'+slot.players[0]+'</span><span class="match-vs">vs</span><span class="match-player">'+slot.players[1]+'</span></div></div>';}
+      else{html+='<div class="match"><div class="match-title">Kolmen ryhmä &nbsp;·&nbsp; '+matchLen+' min</div><div class="match-sub"><span class="match-player">'+slot.players[0]+'</span><span class="match-vs">vs</span><span class="match-player">'+slot.players[1]+'</span></div><div class="match-sub"><span class="match-player">'+slot.players[1]+'</span><span class="match-vs">vs</span><span class="match-player">'+slot.players[2]+'</span></div><div class="match-sub"><span class="match-player">'+slot.players[0]+'</span><span class="match-vs">vs</span><span class="match-player">'+slot.players[2]+'</span></div><div class="match-note">'+subMin+' min / alikierros</div></div>';}
+    });
+    html+='</div>';
+  });
+  html+='<div class="divider"></div><div class="summary-title">Tehollinen aika per ottelija</div>';
+  names.forEach(function(p){html+='<div class="summary-row"><span class="summary-name">'+p+'</span><div class="summary-bar-wrap"><div class="summary-bar" style="width:'+Math.round(mins[p]/maxMins*100)+'%"></div></div><span class="summary-mins">'+mins[p]+' min</span></div>';});
+  html+='<div class="divider"></div><div class="summary-title">Aika otteluparilla</div>';
+  pairKeys.forEach(function(k){var parts=k.split('|'),m=pmm[k];html+='<div class="pair-row"><div class="pair-names">'+parts[0]+'<span>vs</span>'+parts[1]+'</div><div class="pair-bar-wrap"><div class="pair-bar" style="width:'+Math.round(m/maxPM*100)+'%"></div></div><div class="pair-mins">'+m+' min</div></div>';});
+  html+='<div class="divider"></div><div class="bottom-btns"><button class="btn-regen" onclick="generate()">Generoi uudestaan</button><button class="btn-reset" onclick="resetAll()">Aloita alusta</button></div>';
+  var res=document.getElementById('results');res.innerHTML=html;res.className='results visible';res.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function resetAll(){var res=document.getElementById('results');res.className='results';res.innerHTML='';window.scrollTo({top:0,behavior:'smooth'});}
+</script>
+</body>
+</html>
